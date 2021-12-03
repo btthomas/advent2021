@@ -1,0 +1,9 @@
+{
+  "name": "advent2021",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:btthomas/advent2021.git",
+  "author": "Blake Thomas <blake.thomas@id.me>",
+  "license": "MIT",
+  "type": "module"
+}
