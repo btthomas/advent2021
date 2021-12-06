@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 
 // 6a
 async function init() {
-  const input = await readFile('six.test.txt', 'utf8');
+  const input = await readFile('six.txt', 'utf8');
 
   let FISH = input.split(',').reduce(
     (acc, d) => {
@@ -15,11 +15,10 @@ async function init() {
 
   let index = 0;
 
-  while (index < 80) {
+  while (index < 256) {
     FISH = iterate(FISH);
     index++;
   }
-  console.log(FISH);
 
   console.log(total(FISH));
 }
