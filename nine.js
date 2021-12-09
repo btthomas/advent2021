@@ -21,11 +21,38 @@ async function init() {
     });
   });
 
-  const score = lowPoints.reduce((acc, d) => {
-    return acc + d.d + 1;
-  }, 0);
+  const basins = lowPoints.map(({ i, j, d }) => {
+    const basin = new Set();
 
-  console.log(score);
+    addToBasin(MATRIX, basin, i, j);
+
+    return { i, j, size: basin.size };
+  });
+
+  basins.sort((a, b) => b.size - a.size);
+  console.log(basins[0].size * basins[1].size * basins[2].size);
+}
+
+function addToBasin(grid, basin, i, j) {
+  if (!inside(grid, i, j)) {
+    return;
+  }
+
+  if (grid[i][j] === 9) {
+    return;
+  }
+
+  const point = `${i}-${j}`;
+  if (basin.has(point)) {
+    return;
+  }
+  basin.add(point);
+
+  // add neighbors;
+  addToBasin(grid, basin, i - 1, j);
+  addToBasin(grid, basin, i + 1, j);
+  addToBasin(grid, basin, i, j - 1);
+  addToBasin(grid, basin, i, j + 1);
 }
 
 function inside(grid, x, y) {
