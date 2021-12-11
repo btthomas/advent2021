@@ -27,6 +27,7 @@ const LEFTOVER = {
 };
 
 async function init() {
+  console.time('a');
   const input = await readFile('ten.txt', 'utf8');
 
   const rows = input.split('\n');
@@ -59,10 +60,13 @@ async function init() {
       scores.push(subScore);
     }
   });
+
   console.log({ score });
 
   scores.sort((a, b) => a - b);
   console.log({ b: scores[(scores.length - 1) / 2] });
+
+  console.timeEnd('a');
 }
 
 init();

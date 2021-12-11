@@ -27,6 +27,7 @@ import { readFile } from 'fs/promises';
 
 // 7b
 async function init() {
+  console.time('a');
   const input = await readFile('seven.txt', 'utf8');
 
   const positions = input.split(',').map((d) => parseInt(d));
@@ -44,6 +45,7 @@ async function init() {
   const bestI = fuels.indexOf(minimum);
 
   console.log(bestI, minimum);
+  console.timeEnd('a');
 }
 
 function calcFuel(positions, i) {
