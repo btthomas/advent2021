@@ -5,7 +5,7 @@ const START = 'start';
 const END = 'end';
 const fullPaths = [];
 
-// 11ab
+// 12ab
 async function init() {
   const input = await readFile('twelve.txt', 'utf8');
 
