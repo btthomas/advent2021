@@ -84,6 +84,7 @@ import { readFile } from 'fs/promises';
 
 // 5b
 async function init() {
+  console.time('b');
   const BOARD = [];
   const LINES = [];
 
@@ -178,6 +179,8 @@ async function init() {
   });
   // console.log(BOARD.join('\n'));
   console.log(counter);
+
+  console.timeEnd('b');
 }
 
 init();
