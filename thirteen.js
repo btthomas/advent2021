@@ -35,9 +35,9 @@ async function init() {
   });
 
   console.log(POINTS);
-  const display = [[], [], [], [], [], []];
-
+  const display = [];
   for (let y = 0; y < 6; y++) {
+    display[y] = [];
     for (let x = 0; x < 40; x++) {
       display[y][x] = '.';
     }
