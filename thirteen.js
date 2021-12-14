@@ -46,7 +46,7 @@ async function init() {
     display[y][x] = 'X';
   });
 
-  console.log(display.join('\n'));
+  console.log(display.map((row) => row.join('')).join('\n'));
 }
 
 function dedupe(POINTS) {
