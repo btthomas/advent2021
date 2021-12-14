@@ -2,43 +2,58 @@ import { readFile } from 'fs/promises';
 
 // 14a
 async function init() {
-  console.time('b');
   const input = await readFile('fourteen.txt', 'utf8');
   const lines = input.split('\n');
 
-  let pieces = [];
   let [MOLECULE, blank, ...RULES] = lines;
+
+  MOLECULE = [...MOLECULE].reduce((acc, cur, ind) => {
+    if (ind < MOLECULE.length - 1) {
+      const seg = `${cur}${MOLECULE[ind + 1]}`;
+      if (acc[seg]) {
+        acc[seg]++;
+      } else {
+        acc[seg] = 1;
+      }
+    }
+    return acc;
+  }, {});
 
   RULES = RULES.reduce((acc, rule) => {
     let [match, right] = rule.split(' -> ');
-    pieces.push(`(${match})`);
-    acc[match] = `${right}${match[1]}`;
+    acc[match] = [`${match[0]}${right}`, `${right}${match[1]}`];
     return acc;
   }, {});
 
-  const regexString = pieces.join('|');
-  const regex = new RegExp(`(?=(${regexString}))`, 'g');
-
-  for (let i = 0; i < 10; i++) {
-    let next = '';
-    const matches = MOLECULE.matchAll(regex);
-    for (const match of matches) {
-      if (next.length === 0) {
-        next = match[1][0];
-      }
-      next += RULES[match[1]];
+  for (let i = 0; i < 40; i++) {
+    const next = {};
+    for (const [key, value] of Object.entries(MOLECULE)) {
+      RULES[key].forEach((seg) => {
+        if (next[seg]) {
+          next[seg] += value;
+        } else {
+          next[seg] = value;
+        }
+      });
     }
+
     MOLECULE = next;
   }
 
-  const scores = [...MOLECULE].reduce((acc, cur) => {
-    if (acc[cur]) {
-      acc[cur] += 1;
-    } else {
-      acc[cur] = 1;
-    }
-    return acc;
-  }, {});
+  const scores = Object.entries(MOLECULE).reduce(
+    (acc, cur) => {
+      const [seg, count] = cur;
+      const char = seg[1];
+      if (acc[char]) {
+        acc[char] += count;
+      } else {
+        acc[char] = count;
+      }
+
+      return acc;
+    },
+    { [lines[0][0]]: 1 }
+  );
   console.log(scores);
 }
 
