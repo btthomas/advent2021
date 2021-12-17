@@ -2,10 +2,11 @@ import { readFile } from 'fs/promises';
 
 let MAP = [];
 let BEST;
+let BEST2;
 
 // 15a
 async function init() {
-  const input = await readFile('fifteen.test.txt', 'utf8');
+  const input = await readFile('fifteen.txt', 'utf8');
   const piece = input
     .split('\n')
     .map((line) => line.split('').map((d) => parseInt(d)));
@@ -16,10 +17,17 @@ async function init() {
 
   // kick it off with right and down
   BEST[0][0] = 0;
-  tryNext({ x: 0, y: 0 }, 1, 0);
-  tryNext({ x: 0, y: 0 }, 0, 1);
+  tryNext1({ x: 0, y: 0 }, 1, 0);
+  tryNext1({ x: 0, y: 0 }, 0, 1);
+
+  // re-run it and allow zigzag
+  BEST2 = MAP.map((line) => line.map(() => -1));
+  BEST2[0][0] = 0;
+  tryNext2({ x: 0, y: 0 }, 1, 0);
+  tryNext2({ x: 0, y: 0 }, 0, 1);
 
   console.log(BEST[BEST.length - 1][BEST[0].length - 1]);
+  console.log(BEST2[BEST.length - 1][BEST[0].length - 1]);
 }
 
 function buildMap(piece) {
@@ -48,7 +56,7 @@ function buildMap(piece) {
   }
 }
 
-function tryNext(currentNode, a, b) {
+function tryNext1(currentNode, a, b) {
   const { x, y } = currentNode;
 
   const lastScore = BEST[x][y];
@@ -59,20 +67,45 @@ function tryNext(currentNode, a, b) {
     BEST[a][b] = nextScore;
     // right
     if (a + 1 < MAP.length) {
-      tryNext({ x: a, y: b }, a + 1, b);
+      tryNext1({ x: a, y: b }, a + 1, b);
     }
     // down
     if (b + 1 < MAP[0].length) {
-      tryNext({ x: a, y: b }, a, b + 1);
+      tryNext1({ x: a, y: b }, a, b + 1);
     }
+  }
+}
+
+function tryNext2(currentNode, a, b) {
+  const { x, y } = currentNode;
+
+  const lastScore = BEST2[x][y];
+
+  const nextScore = lastScore + MAP[a][b];
+
+  if (
+    (BEST2[a][b] === -1 && nextScore <= BEST[a][b]) ||
+    BEST2[a][b] > nextScore
+  ) {
+    BEST2[a][b] = nextScore;
+
     // up
-    // if (b - 1 >= 0) {
-    //   tryNext({ x: a, y: b }, a, b - 1);
-    // }
+    if (b - 1 >= 0) {
+      tryNext2({ x: a, y: b }, a, b - 1);
+    }
     // left
-    // if (a - 1 >= 0) {
-    //   tryNext({ x: a, y: b }, a - 1, b);
-    // }
+    if (a - 1 >= 0) {
+      tryNext2({ x: a, y: b }, a - 1, b);
+    }
+
+    // right
+    if (a + 1 < MAP.length) {
+      tryNext2({ x: a, y: b }, a + 1, b);
+    }
+    // down
+    if (b + 1 < MAP[0].length) {
+      tryNext2({ x: a, y: b }, a, b + 1);
+    }
   }
 }
 
