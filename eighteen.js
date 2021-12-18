@@ -3,19 +3,52 @@ import { readFile } from 'fs/promises';
 // 18a
 async function init() {
   // console.time('0');
-  const input = await readFile('eighteen.test.test.txt', 'utf8');
+  const input = await readFile('eighteen.txt', 'utf8');
   const lines = input.split('\n').map((line) => JSON.parse(line));
 
-  lines.forEach((line) => {
-    // console.log(JSON.stringify(line));
+  let biggest = 0;
 
-    const path = findExplode(line);
-    if (path) {
-      // console.log(path);
-      explode(line, path);
-      console.log(JSON.stringify(line));
+  const final = lines.reduce((acc, line) => {
+    let current;
+
+    if (acc) {
+      current = [acc, line];
+      // console.log(JSON.stringify(current));
+    } else {
+      return line;
     }
-  });
+
+    while (true) {
+      let path = findExplode(current);
+      if (path) {
+        explode(current, path);
+        // console.log(JSON.stringify(current));
+      } else {
+        path = findSplit(current);
+        if (path) {
+          split(current, path);
+          // console.log(JSON.stringify(current));
+        } else {
+          // done
+          // console.log(JSON.stringify(current));
+          break;
+        }
+      }
+    }
+
+    return current;
+  }, false);
+
+  console.log(JSON.stringify(final));
+  console.log(magnitude(final));
+}
+
+function magnitude(line) {
+  if (typeof line === 'object') {
+    return 3 * magnitude(line[0]) + 2 * magnitude(line[1]);
+  } else {
+    return line;
+  }
 }
 
 function findExplode(line) {
@@ -30,6 +63,7 @@ function findExplode(line) {
     if (typeof current === 'object') {
       path.push(0);
     } else {
+      // :)
       path[path.length - 1]++;
 
       if (path[path.length - 1] === 2) {
@@ -55,12 +89,12 @@ function explode(line, path) {
   const i = path.pop();
   let current = path.reduce((acc, i) => acc[i], line);
 
-  console.log({
-    line: JSON.stringify(line),
-    path: [...path, i],
-    cur0: current[i][0],
-    cur1: current[i][1],
-  });
+  // console.log({
+  //   line: JSON.stringify(line),
+  //   path: [...path, i],
+  //   cur0: current[i][0],
+  //   cur1: current[i][1],
+  // });
 
   addLeft(line, [...path, i], current[i][0]);
   addRight(line, [...path, i], current[i][1]);
@@ -91,8 +125,8 @@ function addLeft(line, path, num) {
         const i = path.pop();
         const parent = path.reduce((acc, i) => acc[i], line);
         parent[i] += num;
+        break;
       }
-      break;
     }
   } else {
     // console.log('none');
@@ -125,8 +159,8 @@ function addRight(line, path, num) {
         const parent = path.reduce((acc, i) => acc[i], line);
 
         parent[i] += num;
+        break;
       }
-      break;
     }
   } else {
     // console.log('none');
@@ -134,11 +168,48 @@ function addRight(line, path, num) {
 }
 
 function findSplit(line) {
-  return {};
+  const path = [0];
+  while (path[0] === 0 || path[0] === 1) {
+    const current = path.reduce((acc, i) => acc[i], line);
+
+    if (current !== 'object' && current >= 10) {
+      return path;
+    }
+
+    if (typeof current === 'object') {
+      path.push(0);
+    } else if (current >= 10) {
+      return path;
+    } else {
+      // :)
+      path[path.length - 1]++;
+
+      if (path[path.length - 1] === 2) {
+        path.pop();
+        path[path.length - 1]++;
+
+        if (path[path.length - 1] === 2) {
+          path.pop();
+          path[path.length - 1]++;
+
+          if (path[path.length - 1] === 2) {
+            path.pop();
+            path[path.length - 1]++;
+          }
+        }
+      }
+    }
+  }
+  return false;
 }
 
-function split(line) {
-  return line;
+function split(line, path) {
+  const i = path.pop();
+  const current = path.reduce((acc, i) => acc[i], line);
+  const num = current[i];
+  const left = Math.floor(num / 2);
+  const right = num - left;
+  current[i] = [left, right];
 }
 
 init();
