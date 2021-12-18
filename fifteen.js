@@ -6,6 +6,8 @@ let BEST2;
 
 // 15a
 async function init() {
+  console.time('0');
+
   const input = await readFile('fifteen.txt', 'utf8');
   const piece = input
     .split('\n')
@@ -14,11 +16,17 @@ async function init() {
   buildMap(piece);
 
   BEST = MAP.map((line) => line.map(() => -1));
+  console.timeEnd('0');
+
+  console.time('a');
+  console.time('b');
 
   // kick it off with right and down
   BEST[0][0] = 0;
   tryNext1({ x: 0, y: 0 }, 1, 0);
   tryNext1({ x: 0, y: 0 }, 0, 1);
+  console.log(BEST[BEST.length - 1][BEST[0].length - 1]);
+  console.timeEnd('a');
 
   // re-run it and allow zigzag
   BEST2 = MAP.map((line) => line.map(() => -1));
@@ -26,8 +34,8 @@ async function init() {
   tryNext2({ x: 0, y: 0 }, 1, 0);
   tryNext2({ x: 0, y: 0 }, 0, 1);
 
-  console.log(BEST[BEST.length - 1][BEST[0].length - 1]);
   console.log(BEST2[BEST.length - 1][BEST[0].length - 1]);
+  console.timeEnd('b');
 }
 
 function buildMap(piece) {
