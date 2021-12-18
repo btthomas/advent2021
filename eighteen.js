@@ -6,41 +6,70 @@ async function init() {
   const input = await readFile('eighteen.txt', 'utf8');
   const lines = input.split('\n').map((line) => JSON.parse(line));
 
+  // const final = lines.reduce((acc, line) => {
+  //   let current;
+
+  //   if (acc) {
+  //     current = [acc, line];
+  //     // console.log(JSON.stringify(current));
+  //   } else {
+  //     return line;
+  //   }
+
+  //   while (true) {
+  //     let path = findExplode(current);
+  //     if (path) {
+  //       explode(current, path);
+  //       // console.log(JSON.stringify(current));
+  //     } else {
+  //       path = findSplit(current);
+  //       if (path) {
+  //         split(current, path);
+  //         // console.log(JSON.stringify(current));
+  //       } else {
+  //         // done
+  //         // console.log(JSON.stringify(current));
+  //         break;
+  //       }
+  //     }
+  //   }
+
+  //   return current;
+  // }, false);
+  // console.log(magnitude(final));
+
   let biggest = 0;
 
-  const final = lines.reduce((acc, line) => {
-    let current;
+  for (let i = 0; i < lines.length; i++) {
+    for (let j = 0; j < lines.length; j++) {
+      if (i !== j) {
+        const left = JSON.parse(JSON.stringify(lines[i]));
+        const right = JSON.parse(JSON.stringify(lines[j]));
+        let current = [left, right];
 
-    if (acc) {
-      current = [acc, line];
-      // console.log(JSON.stringify(current));
-    } else {
-      return line;
-    }
+        while (true) {
+          let path = findExplode(current);
+          if (path) {
+            explode(current, path);
+          } else {
+            path = findSplit(current);
+            if (path) {
+              split(current, path);
+            } else {
+              // done
+              break;
+            }
+          }
+        }
 
-    while (true) {
-      let path = findExplode(current);
-      if (path) {
-        explode(current, path);
-        // console.log(JSON.stringify(current));
-      } else {
-        path = findSplit(current);
-        if (path) {
-          split(current, path);
-          // console.log(JSON.stringify(current));
-        } else {
-          // done
-          // console.log(JSON.stringify(current));
-          break;
+        const score = magnitude(current);
+        if (score > biggest) {
+          biggest = score;
         }
       }
     }
-
-    return current;
-  }, false);
-
-  console.log(JSON.stringify(final));
-  console.log(magnitude(final));
+  }
+  console.log(biggest);
 }
 
 function magnitude(line) {
