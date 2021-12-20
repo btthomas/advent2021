@@ -56,6 +56,7 @@ function parseBin(bin) {
       // 15 bits
       const totalLength = parseInt(packetData.substring(0, 15), 2);
       let data = packetData.substring(15, 15 + totalLength);
+      let rest = packetData.substring(15 + totalLength);
       let result;
 
       while (data && data.length) {
@@ -63,7 +64,7 @@ function parseBin(bin) {
         results.push(result);
       }
 
-      leftoverData = data;
+      leftoverData = rest;
     } else {
       // 11 bits
       const numPackets = parseInt(packetData.substring(0, 11), 2);
