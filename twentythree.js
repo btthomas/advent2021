@@ -8,21 +8,37 @@ const costA = 1;
 const costB = 10;
 const costC = 100;
 const costD = 1000;
+const ORDER = 'DCBA';
+
+function cost(letter) {
+  if (letter === A) {
+    return costA;
+  }
+  if (letter === B) {
+    return costB;
+  }
+  if (letter === C) {
+    return costC;
+  }
+  if (letter === D) {
+    return costD;
+  }
+}
 
 // const startingBoard = {
-//   hallway: HALLWAY,
-//   a: 'BA',
-//   b: 'CD',
-//   c: 'BC',
-//   d: 'DA',
+//   hallway: '...........',
+//   A: 'DC',
+//   B: 'AC',
+//   C: 'AB',
+//   D: 'DB',
 // };
 
 const startingBoard = {
-  hallway: 'AC.......BD',
-  A: '.A',
-  B: '.B',
-  C: '.C',
-  D: '.D',
+  hallway: '...........',
+  A: 'BDDA',
+  B: 'CCBD',
+  C: 'BBAC',
+  D: 'DACA',
 };
 
 let bestScores = {};
@@ -30,15 +46,16 @@ let bestScore = 9999999999;
 
 // 23
 async function init() {
+  console.log(serialize(startingBoard));
   tryNext(startingBoard, 0);
 
   console.log(bestScore);
 }
 
-function tryNext(board, score) {
+function tryNext(board, score, moves = []) {
   // console.log(serialize(board));
   // console.log(score);
-  // "memoize" this position and stop searching if we aren't any better
+  // memoize this position and stop searching if we aren't any better
   const prevScore = bestScores[serialize(board)];
   if (prevScore && prevScore <= score) {
     // console.log(score);
@@ -49,9 +66,11 @@ function tryNext(board, score) {
 
   // if we are done, check if we beat the previous best
   if (isDone(board)) {
-    console.log('done', score);
     if (score < bestScore) {
       bestScore = score;
+      console.log('done', score);
+      console.log(moves.map((d) => serialize(d)).join('\n'));
+      console.log('');
     }
     return;
   }
@@ -59,23 +78,23 @@ function tryNext(board, score) {
   // if an animal is "available" and can go home directly, do it to the bottom available
   const scorePaths = findScorePaths(board, score);
   if (scorePaths.length) {
+    // console.log({ score: scorePaths.length });
     scorePaths.forEach(({ newBoard, newScore }) => {
-      tryNext(newBoard, newScore);
+      tryNext(newBoard, newScore, [...moves, newBoard]);
     });
-    return;
+    // return;
   }
   // move an animal to a "safe spot" in the hall way
-  const movePaths = findMovePaths(board);
-  for (let i = 0; i < movePaths.length; i++) {
-    tryNext(newBoard, newScore);
-    return;
+  const movePaths = findMovePaths(board, score);
+  if (movePaths.length) {
+    // console.log({ move: movePaths.length });
+    movePaths.forEach(({ newBoard, newScore }) => {
+      tryNext(newBoard, newScore, [...moves, newBoard]);
+    });
   }
 
-  // no valid moves!
   return;
 }
-
-const ORDER = 'DCBA';
 
 function findScorePaths(board, score) {
   const { hallway } = board;
@@ -116,11 +135,39 @@ function findScorePaths(board, score) {
             newScore: score + 3 + spot,
           });
         }
+        if (hallway[3] === '.' && board.B[0] === A) {
+          const newB = '.' + board.B[1];
+          paths.push({
+            newBoard: { ...board, B: newB, A: a },
+            newScore: score + 3 + spot,
+          });
+        }
+        if (hallway[3] === '.' && board.B === '.A') {
+          const newB = '..';
+          paths.push({
+            newBoard: { ...board, B: newB, A: a },
+            newScore: score + 4 + spot,
+          });
+        }
         if (hallway[3] === '.' && hallway[5] === '.' && hallway[7] === A) {
           const newHallway = change(hallway, 7, '.');
           paths.push({
             newBoard: { ...board, hallway: newHallway, A: a },
             newScore: score + 5 + spot,
+          });
+        }
+        if (hallway[3] === '.' && hallway[5] === '.' && board.C[0] === A) {
+          const newC = '.' + board.C[1];
+          paths.push({
+            newBoard: { ...board, C: newC, A: a },
+            newScore: score + 5 + spot,
+          });
+        }
+        if (hallway[3] === '.' && hallway[5] === '.' && board.C === '.A') {
+          const newC = '..';
+          paths.push({
+            newBoard: { ...board, C: newC, A: a },
+            newScore: score + 6 + spot,
           });
         }
         if (
@@ -133,6 +180,30 @@ function findScorePaths(board, score) {
           paths.push({
             newBoard: { ...board, hallway: newHallway, A: a },
             newScore: score + 7 + spot,
+          });
+        }
+        if (
+          hallway[3] === '.' &&
+          hallway[5] === '.' &&
+          hallway[7] === '.' &&
+          board.D[0] === A
+        ) {
+          const newD = '.' + board.D[1];
+          paths.push({
+            newBoard: { ...board, D: newD, A: a },
+            newScore: score + 7 + spot,
+          });
+        }
+        if (
+          hallway[3] === '.' &&
+          hallway[5] === '.' &&
+          hallway[7] === '.' &&
+          board.D === '.A'
+        ) {
+          const newD = '..';
+          paths.push({
+            newBoard: { ...board, D: newD, A: a },
+            newScore: score + 8 + spot,
           });
         }
         if (
@@ -173,6 +244,20 @@ function findScorePaths(board, score) {
             newScore: score + costB * (3 + spot),
           });
         }
+        if (hallway[3] === '.' && board.A[0] === B) {
+          const newA = '.' + board.A[1];
+          paths.push({
+            newBoard: { ...board, A: newA, B: b },
+            newScore: score + costB * (3 + spot),
+          });
+        }
+        if (hallway[3] === '.' && board.A === '.B') {
+          const newA = '..';
+          paths.push({
+            newBoard: { ...board, A: newA, B: b },
+            newScore: score + costB * (4 + spot),
+          });
+        }
         if (hallway[0] === B && hallway[1] === '.' && hallway[3] === '.') {
           const newHallway = change(hallway, 1, '.');
           paths.push({
@@ -187,11 +272,39 @@ function findScorePaths(board, score) {
             newScore: score + costB * (3 + spot),
           });
         }
+        if (hallway[5] === '.' && board.C[0] === B) {
+          const newC = '.' + board.C[1];
+          paths.push({
+            newBoard: { ...board, C: newC, B: b },
+            newScore: score + costB * (3 + spot),
+          });
+        }
+        if (hallway[5] === '.' && board.C === '.B') {
+          const newC = '..';
+          paths.push({
+            newBoard: { ...board, C: newC, B: b },
+            newScore: score + costB * (4 + spot),
+          });
+        }
         if (hallway[5] === '.' && hallway[7] === '.' && hallway[9] === B) {
           const newHallway = change(hallway, 9, '.');
           paths.push({
             newBoard: { ...board, hallway: newHallway, B: b },
             newScore: score + costB * (5 + spot),
+          });
+        }
+        if (hallway[5] === '.' && hallway[7] === '.' && board.D[0] === B) {
+          const newD = '.' + board.D[1];
+          paths.push({
+            newBoard: { ...board, D: newD, B: b },
+            newScore: score + costB * (5 + spot),
+          });
+        }
+        if (hallway[5] === '.' && hallway[7] === '.' && board.D === '.B') {
+          const newD = '..';
+          paths.push({
+            newBoard: { ...board, D: newD, B: b },
+            newScore: score + costB * (6 + spot),
           });
         }
         if (
@@ -231,6 +344,20 @@ function findScorePaths(board, score) {
             newScore: score + costC * (3 + spot),
           });
         }
+        if (hallway[7] === '.' && board.D[0] === 'C') {
+          const newD = '.' + board.D[1];
+          paths.push({
+            newBoard: { ...board, D: newD, C: c },
+            newScore: score + costC * (3 + spot),
+          });
+        }
+        if (hallway[7] === '.' && board.D === '.C') {
+          const newD = '..';
+          paths.push({
+            newBoard: { ...board, D: newD, C: c },
+            newScore: score + costC * (4 + spot),
+          });
+        }
         if (hallway[10] === C && hallway[9] === '.' && hallway[7] === '.') {
           const newHallway = change(hallway, 10, '.');
           paths.push({
@@ -245,11 +372,40 @@ function findScorePaths(board, score) {
             newScore: score + costC * (3 + spot),
           });
         }
+        if (hallway[5] === '.' && board.B[0] === 'C') {
+          const newB = '.' + board.B[1];
+          paths.push({
+            newBoard: { ...board, B: newB, C: c },
+            newScore: score + costC * (3 + spot),
+          });
+        }
+        if (hallway[5] === '.' && board.B === '.C') {
+          const newB = '..';
+          paths.push({
+            newBoard: { ...board, B: newB, C: c },
+            newScore: score + costC * (4 + spot),
+          });
+        }
         if (hallway[5] === '.' && hallway[3] === '.' && hallway[1] === C) {
           const newHallway = change(hallway, 1, '.');
           paths.push({
             newBoard: { ...board, hallway: newHallway, C: c },
             newScore: score + costC * (5 + spot),
+          });
+        }
+
+        if (hallway[5] === '.' && hallway[3] === '.' && board.A[0] === 'C') {
+          const newA = '.' + board.A[1];
+          paths.push({
+            newBoard: { ...board, A: newA, C: c },
+            newScore: score + costC * (5 + spot),
+          });
+        }
+        if (hallway[5] === '.' && hallway[3] === '.' && board.A === '.C') {
+          const newA = '..';
+          paths.push({
+            newBoard: { ...board, A: newA, C: c },
+            newScore: score + costC * (6 + spot),
           });
         }
         if (
@@ -295,11 +451,39 @@ function findScorePaths(board, score) {
             newScore: score + costD * (3 + spot),
           });
         }
+        if (hallway[7] === '.' && board.C[0] === D) {
+          const newC = '.' + board.C[1];
+          paths.push({
+            newBoard: { ...board, C: newC, D: d },
+            newScore: score + costD * (3 + spot),
+          });
+        }
+        if (hallway[7] === '.' && board.C === '.D') {
+          const newC = '..';
+          paths.push({
+            newBoard: { ...board, C: newC, D: d },
+            newScore: score + costD * (4 + spot),
+          });
+        }
         if (hallway[7] === '.' && hallway[5] === '.' && hallway[3] === D) {
           const newHallway = change(hallway, 3, '.');
           paths.push({
             newBoard: { ...board, hallway: newHallway, D: d },
             newScore: score + costD * (5 + spot),
+          });
+        }
+        if (hallway[7] === '.' && hallway[5] === '.' && board.B[0] === D) {
+          const newB = '.' + board.B[1];
+          paths.push({
+            newBoard: { ...board, B: newB, D: d },
+            newScore: score + costD * (5 + spot),
+          });
+        }
+        if (hallway[7] === '.' && hallway[5] === '.' && board.B === '.D') {
+          const newB = '..';
+          paths.push({
+            newBoard: { ...board, B: newB, D: d },
+            newScore: score + costD * (6 + spot),
           });
         }
         if (
@@ -312,6 +496,30 @@ function findScorePaths(board, score) {
           paths.push({
             newBoard: { ...board, hallway: newHallway, D: d },
             newScore: score + costD * (7 + spot),
+          });
+        }
+        if (
+          hallway[7] === '.' &&
+          hallway[5] === '.' &&
+          hallway[3] === '.' &&
+          board.A[0] === D
+        ) {
+          const newA = '.' + board.A[1];
+          paths.push({
+            newBoard: { ...board, A: newA, D: d },
+            newScore: score + costD * (7 + spot),
+          });
+        }
+        if (
+          hallway[7] === '.' &&
+          hallway[5] === '.' &&
+          hallway[3] === '.' &&
+          board.A === '.D'
+        ) {
+          const newA = '..';
+          paths.push({
+            newBoard: { ...board, A: newA, D: d },
+            newScore: score + costD * (8 + spot),
           });
         }
         if (
@@ -334,8 +542,325 @@ function findScorePaths(board, score) {
   return paths;
 }
 
-function findMovePaths() {
-  return [];
+function findMovePaths(board, score) {
+  const { hallway } = board;
+  const paths = [];
+
+  for (let h = 0; h < ORDER.length; h++) {
+    // console.log({ board });
+    const letter = ORDER[h];
+    const home = board[letter];
+
+    const top = home[0];
+    const bot = home[1];
+    let spot;
+    let mov;
+
+    if (top === '.' && bot !== letter && bot !== '.') {
+      spot = 1;
+      mov = bot;
+    } else if (top !== letter && top !== '.') {
+      spot = 0;
+      mov = top;
+    } else if (bot !== letter && top !== '.') {
+      spot = 0;
+      mov = top;
+    } else {
+      continue;
+    }
+
+    if (letter === A) {
+      if (hallway[1] === '.') {
+        const newHallway = change(hallway, 1, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[1] === '.' && hallway[0] === '.') {
+        const newHallway = change(hallway, 0, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 3),
+        });
+      }
+      if (hallway[3] === '.') {
+        const newHallway = change(hallway, 3, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[3] === '.' && hallway[5] === '.') {
+        const newHallway = change(hallway, 5, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 4),
+        });
+      }
+      if (hallway[3] === '.' && hallway[5] === '.' && hallway[7] === '.') {
+        const newHallway = change(hallway, 7, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 6),
+        });
+      }
+      if (
+        hallway[3] === '.' &&
+        hallway[5] === '.' &&
+        hallway[7] === '.' &&
+        hallway[9] === '.'
+      ) {
+        const newHallway = change(hallway, 9, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 8),
+        });
+      }
+      if (
+        hallway[3] === '.' &&
+        hallway[5] === '.' &&
+        hallway[7] === '.' &&
+        hallway[9] === '.' &&
+        hallway[10] === '.'
+      ) {
+        const newHallway = change(hallway, 10, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, A: newHome },
+          newScore: score + cost(mov) * (spot + 9),
+        });
+      }
+    } else if (letter == B) {
+      if (hallway[3] === '.') {
+        const newHallway = change(hallway, 3, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[5] === '.') {
+        const newHallway = change(hallway, 5, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[3] === '.' && hallway[1] === '.') {
+        const newHallway = change(hallway, 1, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 4),
+        });
+      }
+      if (hallway[3] === '.' && hallway[1] === '.' && hallway[0] === '.') {
+        const newHallway = change(hallway, 0, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 5),
+        });
+      }
+      if (hallway[5] === '.' && hallway[7] === '.') {
+        const newHallway = change(hallway, 7, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 4),
+        });
+      }
+      if (hallway[5] === '.' && hallway[7] === '.' && hallway[9] === '.') {
+        const newHallway = change(hallway, 9, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 6),
+        });
+      }
+      if (
+        hallway[5] === '.' &&
+        hallway[7] === '.' &&
+        hallway[9] === '.' &&
+        hallway[10] === '.'
+      ) {
+        const newHallway = change(hallway, 9, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, B: newHome },
+          newScore: score + cost(mov) * (spot + 7),
+        });
+      }
+    } else if (letter == C) {
+      if (hallway[7] === '.') {
+        const newHallway = change(hallway, 7, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[5] === '.') {
+        const newHallway = change(hallway, 5, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[7] === '.' && hallway[9] === '.') {
+        const newHallway = change(hallway, 9, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 4),
+        });
+      }
+      if (hallway[7] === '.' && hallway[9] === '.' && hallway[10] === '.') {
+        const newHallway = change(hallway, 10, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 5),
+        });
+      }
+      if (hallway[5] === '.' && hallway[3] === '.') {
+        const newHallway = change(hallway, 3, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 4),
+        });
+      }
+      if (hallway[5] === '.' && hallway[3] === '.' && hallway[1] === '.') {
+        const newHallway = change(hallway, 1, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 6),
+        });
+      }
+      if (
+        hallway[5] === '.' &&
+        hallway[3] === '.' &&
+        hallway[1] === '.' &&
+        hallway[0] === '.'
+      ) {
+        const newHallway = change(hallway, 0, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, C: newHome },
+          newScore: score + cost(mov) * (spot + 7),
+        });
+      }
+    } else if (letter == D) {
+      if (hallway[9] === '.') {
+        const newHallway = change(hallway, 9, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[9] === '.' && hallway[10] === '.') {
+        const newHallway = change(hallway, 10, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 3),
+        });
+      }
+      if (hallway[7] === '.') {
+        const newHallway = change(hallway, 7, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 2),
+        });
+      }
+      if (hallway[7] === '.' && hallway[5] === '.') {
+        const newHallway = change(hallway, 5, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 4),
+        });
+      }
+      if (hallway[3] === '.' && hallway[5] === '.' && hallway[7] === '.') {
+        const newHallway = change(hallway, 3, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 6),
+        });
+      }
+      if (
+        hallway[3] === '.' &&
+        hallway[5] === '.' &&
+        hallway[7] === '.' &&
+        hallway[1] === '.'
+      ) {
+        const newHallway = change(hallway, 1, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 8),
+        });
+      }
+      if (
+        hallway[3] === '.' &&
+        hallway[5] === '.' &&
+        hallway[7] === '.' &&
+        hallway[1] === '.' &&
+        hallway[0] === '.'
+      ) {
+        const newHallway = change(hallway, 0, mov);
+        const newHome = change(home, spot, '.');
+
+        paths.push({
+          newBoard: { ...board, hallway: newHallway, D: newHome },
+          newScore: score + cost(mov) * (spot + 9),
+        });
+      }
+    }
+  }
+
+  return paths;
 }
 
 function isOpen(board, letter) {
