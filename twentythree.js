@@ -26,19 +26,19 @@ function cost(letter) {
 }
 
 // const startingBoard = {
-//   hallway: '...........',
-//   A: 'DC',
-//   B: 'AC',
-//   C: 'AB',
-//   D: 'DB',
+//   hallway: 'AB.......CD',
+//   A: '.AAA',
+//   B: '.BBB',
+//   C: '.CCC',
+//   D: '.DDD',
 // };
 
 const startingBoard = {
   hallway: '...........',
-  A: 'BDDA',
-  B: 'CCBD',
-  C: 'BBAC',
-  D: 'DACA',
+  A: 'DDDC',
+  B: 'ACBC',
+  C: 'ABAB',
+  D: 'DACB',
 };
 
 let bestScores = {};
@@ -105,7 +105,21 @@ function findScorePaths(board, score) {
     if (spot) {
       // check hallway and top
       if (letter === A) {
-        const a = spot === 2 ? '.A' : 'AA';
+        let a;
+        switch (spot) {
+          case 4:
+            a = '...A';
+            break;
+          case 3:
+            a = '..AA';
+            break;
+          case 2:
+            a = '.AAA';
+            break;
+          case 1:
+            a = 'AAAA';
+            break;
+        }
 
         if (hallway[1] === A) {
           const newHallway = change(hallway, 1, '.');
@@ -221,7 +235,21 @@ function findScorePaths(board, score) {
         }
       }
       if (letter === B) {
-        const b = spot === 2 ? '.B' : 'BB';
+        let b;
+        switch (spot) {
+          case 4:
+            b = '...B';
+            break;
+          case 3:
+            b = '..BB';
+            break;
+          case 2:
+            b = '.BBB';
+            break;
+          case 1:
+            b = 'BBBB';
+            break;
+        }
 
         if (hallway[3] === B) {
           const newHallway = change(hallway, 3, '.');
@@ -321,7 +349,21 @@ function findScorePaths(board, score) {
         }
       }
       if (letter === C) {
-        const c = spot === 2 ? '.C' : 'CC';
+        let c;
+        switch (spot) {
+          case 4:
+            c = '...C';
+            break;
+          case 3:
+            c = '..CC';
+            break;
+          case 2:
+            c = '.CCC';
+            break;
+          case 1:
+            c = 'CCCC';
+            break;
+        }
 
         if (hallway[5] === C) {
           const newHallway = change(hallway, 5, '.');
@@ -422,7 +464,22 @@ function findScorePaths(board, score) {
         }
       }
       if (letter === D) {
-        const d = spot === 2 ? '.D' : 'DD';
+        let d;
+        switch (spot) {
+          case 4:
+            d = '...D';
+            break;
+          case 3:
+            d = '..DD';
+            break;
+          case 2:
+            d = '.DDD';
+            break;
+          case 1:
+            d = 'DDDD';
+            break;
+        }
+
         if (hallway[9] === D) {
           const newHallway = change(hallway, 9, '.');
           paths.push({
@@ -547,26 +604,38 @@ function findMovePaths(board, score) {
   const paths = [];
 
   for (let h = 0; h < ORDER.length; h++) {
-    // console.log({ board });
     const letter = ORDER[h];
     const home = board[letter];
 
-    const top = home[0];
-    const bot = home[1];
+    // top to bottom
+    const [q, w, e, r] = home;
     let spot;
     let mov;
 
-    if (top === '.' && bot !== letter && bot !== '.') {
+    if (q === '.' && w === '.' && e === '.' && r !== '.' && r !== letter) {
+      spot = 3;
+      mov = r;
+    } else if (
+      q === '.' &&
+      w === '.' &&
+      e !== '.' &&
+      (e !== letter || r !== letter)
+    ) {
+      spot = 2;
+      mov = e;
+    } else if (
+      q === '.' &&
+      w !== '.' &&
+      (w !== letter || e !== letter || r !== letter)
+    ) {
       spot = 1;
-      mov = bot;
-    } else if (top !== letter && top !== '.') {
+      mov = w;
+    } else if (
+      q !== '.' &&
+      (q !== letter || w !== letter || e !== letter || r !== letter)
+    ) {
       spot = 0;
-      mov = top;
-    } else if (bot !== letter && top !== '.') {
-      spot = 0;
-      mov = top;
-    } else {
-      continue;
+      mov = q;
     }
 
     if (letter === A) {
@@ -864,10 +933,16 @@ function findMovePaths(board, score) {
 }
 
 function isOpen(board, letter) {
-  if (board[letter] === '..') {
+  if (board[letter] === '....') {
+    return 4;
+  }
+  if (board[letter] === `...${letter}`) {
+    return 3;
+  }
+  if (board[letter] === `..${letter}${letter}`) {
     return 2;
   }
-  if (board[letter] === `.${letter}`) {
+  if (board[letter] === `.${letter}${letter}${letter}`) {
     return 1;
   }
   return 0;
@@ -877,16 +952,16 @@ function isDone(board) {
   if (board.hallway !== HALLWAY) {
     return false;
   }
-  if (board.A != 'AA') {
+  if (board.A != 'AAAA') {
     return false;
   }
-  if (board.B != 'BB') {
+  if (board.B != 'BBBB') {
     return false;
   }
-  if (board.C != 'CC') {
+  if (board.C != 'CCCC') {
     return false;
   }
-  if (board.D != 'DD') {
+  if (board.D != 'DDDD') {
     return false;
   }
   return true;
